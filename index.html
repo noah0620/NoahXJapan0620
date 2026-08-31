@@ -2858,7 +2858,15 @@
             .hashtag-post-meta span { font-size: 7px; }
         }
 
-</style>
+
+        /* いいね・コメント削除。セーブ、ハッシュタグ、カレンダー等は維持 */
+        .post-action-button[onclick*="togglePostLike"],
+        .post-action-button[onclick*="openCommentModal"],
+        #commentModal {
+            display: none !important;
+        }
+
+    </style>
 
 
 <style>
@@ -3178,12 +3186,9 @@ img.image-loaded {
         
         <!-- USER ACTION HISTORY -->
         <section class="history-panel" id="actionHistory">
-            <div class="section-title">MY ACTIVITY</div>
+            <div class="section-title">履歴</div>
             <div class="history-tabs">
-                <button type="button" class="history-tab active" data-history-tab="all">すべて</button>
-                <button type="button" class="history-tab" data-history-tab="liked">いいね</button>
-                <button type="button" class="history-tab" data-history-tab="saved">セーブ</button>
-                <button type="button" class="history-tab" data-history-tab="commented">コメント</button>
+                <button type="button" class="history-tab active" data-history-tab="saved">セーブ</button>
                 <button type="button" class="history-tab" data-history-tab="viewed">閲覧</button>
             </div>
             <div id="activityCounts" class="activity-counts"></div>
@@ -3200,11 +3205,7 @@ img.image-loaded {
             <div class="qa-list">
                 <details class="qa-item">
                     <summary>このサイトでは何ができますか？</summary>
-                    <div class="qa-answer">タレント情報、投稿画像、ハッシュタグ検索、画像へのいいね・セーブ・コメントなどを確認できます。</div>
-                </details>
-                <details class="qa-item">
-                    <summary>コメントは匿名でも投稿できますか？</summary>
-                    <div class="qa-answer">はい。匿名投稿にするか、任意のユーザー名を設定して投稿できます。</div>
+                    <div class="qa-answer">タレント情報、投稿画像、ハッシュタグ検索、画像のセーブなどを確認できます。</div>
                 </details>
                 <details class="qa-item">
                     <summary>画像をセーブするとどこに保存されますか？</summary>
@@ -3271,24 +3272,7 @@ img.image-loaded {
     </div>
 
     <!-- COMMENTS -->
-    <div class="comment-modal" id="commentModal" onclick="if(event.target===this) closeCommentModal()">
-        <div class="comment-dialog">
-            <h2>コメント</h2>
-            <div class="comment-list" id="commentList"></div>
-            <div class="comment-form">
-                <label class="comment-user-row">
-                    <input id="commentAnonymous" type="checkbox" checked onchange="toggleCommentUsername()">
-                    匿名で投稿
-                </label>
-                <input id="commentUsername" type="text" placeholder="ユーザー名（任意）" disabled>
-                <textarea id="commentText" placeholder="コメントを入力してください"></textarea>
-                <div class="comment-buttons">
-                    <button type="button" onclick="submitComment()">コメントする</button>
-                    <button type="button" class="secondary" onclick="closeCommentModal()">閉じる</button>
-                </div>
-            </div>
-        </div>
-    </div>
+    
 
 
     <!-- =================================
@@ -7843,18 +7827,7 @@ img.image-loaded {
             localStorage.setItem(SOCIAL_STORAGE_KEY, JSON.stringify(state));
         }
 
-        function togglePostLike(key, button) {
-            const state = getSocialState();
-            const record = getSocialRecord(key);
-            record.liked = !record.liked;
-            record.likeCount = Math.max(0, Number(record.likeCount || 0) + (record.liked ? 1 : -1));
-            record.likedAt = record.liked ? new Date().toLocaleString("ja-JP") : "";
-            state[key] = record;
-            localStorage.setItem(SOCIAL_STORAGE_KEY, JSON.stringify(state));
-            button.classList.toggle("active", record.liked);
-            button.textContent = `${record.liked ? "♥" : "♡"} いいね`;
-            renderActionHistory();
-        }
+        
 
         function togglePostSave(key, button) {
             const state = getSocialState();
@@ -7869,60 +7842,13 @@ img.image-loaded {
             renderActionHistory();
         }
 
-        function openCommentModal(key) {
-            const modal = $("commentModal");
-            if (!modal) return;
-            modal.dataset.postKey = key;
-            renderComments(key);
-            $("commentText").value = "";
-            modal.classList.add("visible");
-            setTimeout(() => $("commentText")?.focus(), 50);
-        }
+        
 
-        function closeCommentModal() {
-            $("commentModal")?.classList.remove("visible");
-        }
+        
 
-        function renderComments(key) {
-            const list = $("commentList");
-            if (!list) return;
-            const comments = getSocialRecord(key).comments || [];
-            list.innerHTML = comments.length
-                ? comments.map(comment => `
-                    <div class="comment-item">
-                        <div class="comment-meta">
-                            ${escapeHTML(comment.name || "匿名")} ・ ${escapeHTML(comment.date || "")}
-                        </div>
-                        <div class="comment-body">${escapeHTML(comment.text || "")}</div>
-                    </div>
-                `).join("")
-                : `<div class="empty-message">まだコメントはありません。</div>`;
-        }
+        
 
-        function submitComment() {
-            const modal = $("commentModal");
-            const text = String($("commentText")?.value || "").trim();
-            if (!modal || !text) return;
-
-            const anonymous = $("commentAnonymous")?.checked ?? true;
-            const username = String($("commentUsername")?.value || "").trim();
-            const name = anonymous ? "匿名" : (username || "ユーザー");
-
-            const key = modal.dataset.postKey;
-            const state = getSocialState();
-            const record = getSocialRecord(key);
-            record.comments = record.comments || [];
-            record.comments.push({
-                name,
-                text,
-                date: new Date().toLocaleString("ja-JP")
-            });
-            state[key] = record;
-            saveSocialState(state);
-
-            renderComments(key);
-            $("commentText").value = "";
-        }
+        
 
         function toggleCommentUsername() {
             const anonymous = $("commentAnonymous")?.checked ?? true;
@@ -7937,7 +7863,7 @@ img.image-loaded {
             if (!list) return;
 
             const activeTab =
-                document.querySelector(".history-tab.active")?.dataset.historyTab || "all";
+                document.querySelector(".history-tab.active")?.dataset.historyTab || "saved";
             const state = getSocialState();
 
             const totals = Object.values(state).reduce((acc, record) => {
@@ -7950,19 +7876,12 @@ img.image-loaded {
             const countsBox = $("activityCounts");
             if (countsBox) {
                 countsBox.innerHTML =
-                    `♥ いいね ${totals.likes}　★ セーブ ${totals.saves}　💬 コメント ${totals.comments}`;
+                    `★ セーブ ${totals.saves}`;
             }
 
             const items = Object.entries(state).flatMap(([key, record]) => {
                 const comments = record.comments || [];
                 const actions = [];
-
-                if (record.liked) actions.push({
-                    type: "liked",
-                    label: "♥ いいね",
-                    date: record.likedAt || "",
-                    key
-                });
 
                 if (record.saved) actions.push({
                     type: "saved",
@@ -8041,7 +7960,7 @@ img.image-loaded {
 
 
         function clearActionHistory() {
-            if (!confirm("いいね・セーブ・コメントの履歴をすべて削除しますか？")) return;
+            if (!confirm("セーブ・閲覧履歴をすべて削除しますか？")) return;
             localStorage.removeItem(SOCIAL_STORAGE_KEY);
             renderActionHistory();
         }
@@ -8268,17 +8187,9 @@ img.image-loaded {
                                                             const commentCount = (social.comments || []).length;
                                                             return `
                                                                 <div class="post-actions" data-social-key="${escapeHTML(socialKey)}">
-                                                                    <button type="button" class="post-action-button ${social.liked ? "active" : ""}"
-                                                                        onclick="togglePostLike('${escapeHTML(socialKey).replace(/'/g, "&#039;")}', this)">
-                                                                        ${social.liked ? "♥" : "♡"} いいね ${Number(social.likeCount || 0)}
-                                                                    </button>
                                                                     <button type="button" class="post-action-button ${social.saved ? "active" : ""}"
                                                                         onclick="togglePostSave('${escapeHTML(socialKey).replace(/'/g, "&#039;")}', this)">
                                                                         ${social.saved ? "★" : "☆"} セーブ ${Number(social.saveCount || 0)}
-                                                                    </button>
-                                                                    <button type="button" class="post-action-button"
-                                                                        onclick="openCommentModal('${escapeHTML(socialKey).replace(/'/g, "&#039;")}')">
-                                                                        💬 コメント${commentCount ? ` (${commentCount})` : ""}
                                                                     </button>
                                                                 </div>
                                                             `;
@@ -9260,7 +9171,7 @@ function getViewHistory() {
             if (!list) return;
 
             const activeTab =
-                document.querySelector(".history-tab.active")?.dataset.historyTab || "all";
+                document.querySelector(".history-tab.active")?.dataset.historyTab || "saved";
             const state = getSocialState();
             const viewed = getViewHistory();
 
@@ -9276,12 +9187,11 @@ function getViewHistory() {
             const countsBox = $("activityCounts");
             if (countsBox) {
                 countsBox.innerHTML =
-                    `♥ いいね ${totals.likes}　★ セーブ ${totals.saves}　💬 コメント ${totals.comments}　👁 閲覧 ${totals.views}`;
+                    `★ セーブ ${totals.saves}　👁 閲覧 ${totals.views}`;
             }
 
             const actions = Object.entries(state).flatMap(([key, record]) => {
                 const rows = [];
-                if (record.liked) rows.push({ type:"liked", label:"♥ いいね", date:record.likedAt || "", key, record });
                 if (record.saved) rows.push({ type:"saved", label:"★ セーブ", date:record.savedAt || "", key, record });
                 (record.comments || []).forEach(comment => rows.push({
                     type:"commented",
@@ -9324,7 +9234,7 @@ function getViewHistory() {
         };
 
         function clearActionHistory() {
-            if (!confirm("閲覧・いいね・セーブ・コメントの履歴をすべて削除しますか？")) return;
+            if (!confirm("閲覧・セーブ・閲覧履歴をすべて削除しますか？")) return;
             localStorage.removeItem(SOCIAL_STORAGE_KEY);
             localStorage.removeItem(VIEW_HISTORY_KEY);
             renderActionHistory();
@@ -9601,7 +9511,7 @@ renderQuickInfoPopularImages = function(index) {
 renderActionHistory = function() {
     const list = $("historyList");
     if (!list) return;
-    const activeTab = document.querySelector(".history-tab.active")?.dataset.historyTab || "all";
+    const activeTab = document.querySelector(".history-tab.active")?.dataset.historyTab || "saved";
     const state = getSocialState();
     const viewed = getViewHistory();
 
@@ -9614,18 +9524,12 @@ renderActionHistory = function() {
     totals.views = viewed.length;
 
     if ($("activityCounts")) {
-        $("activityCounts").innerHTML = `♥ いいね ${totals.likes}　★ セーブ ${totals.saves}　💬 コメント ${totals.comments}　👁 閲覧 ${totals.views}`;
+        $("activityCounts").innerHTML = `★ セーブ ${totals.saves}　👁 閲覧 ${totals.views}`;
     }
 
     const actions = [];
     Object.entries(state).forEach(([key, record]) => {
-        if (record.liked) actions.push({type:"liked", label:"♥ いいね", date:record.likedAt || "", key, record});
         if (record.saved) actions.push({type:"saved", label:"★ セーブ", date:record.savedAt || "", key, record});
-        (record.comments || []).forEach(comment => actions.push({
-            type:"commented",
-            label:`💬 ${comment.name || "匿名"}：${comment.text || ""}`,
-            date:comment.date || "", key, record
-        }));
     });
     viewed.forEach(item => actions.push({
         type:"viewed", label:"👁 閲覧", date:item.viewedAt || "", key:item.key,
@@ -10246,6 +10150,10 @@ async function getGlobalHashtagGroupsFinal() {
             posts = await getMergedPosts(talent);
         } catch (error) {
             console.error("ハッシュタグ一覧: 投稿取得失敗", talent?.name, error);
+            posts = [];
+        }
+
+        if (!Array.isArray(posts) || posts.length === 0) {
             posts = Array.isArray(talent.posts) ? talent.posts : [];
         }
 
@@ -10347,7 +10255,8 @@ async function renderHashtagDirectoryFinal() {
 
             /* メインタグ選択 = メインタグ付き投稿を全件表示 */
             try {
-                await showDirectoryPostsFinal(`${main} の投稿（全件）`, group.all);
+                const mainPosts = Array.isArray(group.all) ? group.all.slice() : [];
+                await showDirectoryPostsFinal(`${main} の投稿（全件）`, mainPosts);
             } catch (error) {
                 console.error("メインタグ投稿の表示に失敗しました。", error);
                 hashtagDirectoryResultsFinal.innerHTML = `
