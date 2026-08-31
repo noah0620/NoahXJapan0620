@@ -6694,7 +6694,7 @@ img.image-loaded {
 
                 return `
                     <div class="popular-image-item">
-                        <img src="${escapeHTML(src)}" alt="">
+                        <img data-base="${escapeHTML(src)}" alt="">
                         <div class="popular-image-rank">#${rank + 1}</div>
                         <div class="popular-image-stats">
                             ♥ ${likes}　★ ${saves}　💬 ${comments}
@@ -7914,7 +7914,7 @@ img.image-loaded {
 
                     return `
                         <div class="history-item">
-                            ${imageSrc ? `<img class="history-thumb" src="${escapeHTML(imageSrc)}" alt="">` : ""}
+                            ${imageSrc ? `<img class="history-thumb" data-base="${escapeHTML(imageSrc)}" alt="">` : ""}
                             <div class="history-content">
                                 <div class="history-title">
                                     ${escapeHTML(talent?.name || "投稿")}
@@ -10010,7 +10010,7 @@ async function showHashtagDirectoryResults(main, sub) {
             <div class="hashtag-user-grid">
                 ${list.map(({index, talent}) => `
                     <button type="button" class="hashtag-user-card" data-talent-index="${index}">
-                        <img src="${escapeHTML(getTalentImageSource(talent))}" alt="${escapeHTML(talent.name)}">
+                        <img data-base="${escapeHTML(getTalentImageSource(talent))}" alt="${escapeHTML(talent.name)}">
                         <div>
                             <strong>${escapeHTML(talent.name || "名称未設定")}</strong>
                             <span>${escapeHTML(talent.tag || talent.category || "")}</span>
@@ -10351,9 +10351,9 @@ async function showDirectoryPostsFinal(title, list) {
                 : String(post.date || '');
 
             const image = base
-                ? `<img src="${escapeHTML(base)}"${fallback ? ` data-talent-fallback="${escapeHTML(fallback)}"` : ''} alt="">`
+                ? `<img data-base="${escapeHTML(base)}"${fallback ? ` data-talent-fallback="${escapeHTML(fallback)}"` : ''} alt="">`
                 : (fallback
-                    ? `<img src="${escapeHTML(fallback)}" alt="">`
+                    ? `<img data-base="${escapeHTML(fallback)}" alt="">`
                     : `<div class="hashtag-post-no-image">画像なし</div>`);
 
             return `
