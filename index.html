@@ -3632,7 +3632,7 @@ img.image-loaded {
             // 現在のHTMLは talent名付き（例: daten20260727-01）を
             // 作りますが、配布ZIPでは画像がIDだけ（例: 20260727-01.jpg）
             // で直下に置かれているため、両方を候補にする。
-            const rawPostIdMatch = clean.match(/(\\d{8}-\\d{2})(?:\\.[^.]+)?$/);
+            const rawPostIdMatch = clean.match(/(\d{8}-\d{2})(?:\.[^.]+)?$/);
             const rawPostId = rawPostIdMatch ? rawPostIdMatch[1] : null;
 
             const names = hasExt
@@ -3990,7 +3990,7 @@ img.image-loaded {
 
         const siteUpdate = {
             date: "2026/09/03",
-            title: "サイト機能をアップデートしました Ver84実装",
+            title: "サイト機能をアップデートしました Ver83.5実装",
             detail: "画像データ反映されないバグを修正、コスプレ一覧に２名追加"
         };
 
