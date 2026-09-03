@@ -3628,6 +3628,13 @@ img.image-loaded {
 
             const clean = raw.replace(/^\.\//, "");
             const hasExt = hasImageExtension(clean);
+
+            // 現在のHTMLは talent名付き（例: daten20260727-01）を
+            // 作りますが、配布ZIPでは画像がIDだけ（例: 20260727-01.jpg）
+            // で直下に置かれているため、両方を候補にする。
+            const rawPostIdMatch = clean.match(/(\\d{8}-\\d{2})(?:\\.[^.]+)?$/);
+            const rawPostId = rawPostIdMatch ? rawPostIdMatch[1] : null;
+
             const names = hasExt
                 ? [clean]
                 : EXTENSIONS.map(ext => `${clean}.${ext}`);
@@ -3638,8 +3645,17 @@ img.image-loaded {
                 if (!candidates.includes(v)) candidates.push(v);
             };
 
-            // main 直下を最優先
+            // 現在の構成を最優先
             names.forEach(add);
+
+            // ZIPの実ファイル名に合わせた直下のIDのみの構成を追加
+            if (rawPostId) {
+                if (hasExt) {
+                    add(`./${rawPostId}.${clean.split(".").pop()}`);
+                } else {
+                    EXTENSIONS.forEach(ext => add(`./${rawPostId}.${ext}`));
+                }
+            }
 
             // 旧構成も読み込めるようにする
             names.forEach(name => {
@@ -3974,7 +3990,7 @@ img.image-loaded {
 
         const siteUpdate = {
             date: "2026/09/03",
-            title: "サイト機能をアップデートしました Ver83実装",
+            title: "サイト機能をアップデートしました Ver84実装",
             detail: "画像データ反映されないバグを修正、コスプレ一覧に２名追加"
         };
 
