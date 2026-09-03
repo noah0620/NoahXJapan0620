@@ -3714,8 +3714,21 @@ img.image-loaded {
         function getPostImageBase(talentId, id) {
             const v = String(id || "").trim();
             if (/^(https?:|data:|blob:)/i.test(v)) return v;
-            // 投稿画像もまず main 直下を確認。旧 images/posts 構成は
-            // imageCandidates() の後方互換候補で引き続き利用可能。
+
+            // タレント別の投稿画像を優先。
+            // 例: daten + 20260808-02 → daten20260808-02.jpg
+            // または daten/20260808-02.jpg の構成にも対応する。
+            const owner = String(talentId || "")
+                .trim()
+                .replace(/^\.\//, "")
+                .replace(/-poto$/i, "");
+
+            if (owner) {
+                // GitHub Pages の現在の命名規則は「タレント名 + imageId」。
+                // 例: ./daten20260808-02.jpg
+                return `./${owner}${v}`;
+            }
+
             return `./${v}`;
         }
 
@@ -4592,7 +4605,7 @@ img.image-loaded {
                             "2026年8月6日 投稿 01",
 
                         text:
-                            "Xにされた写真です。",
+                            "Xに投稿された写真です。",
 
                         url:
                             "https://x.com/0__ayanami/status/1896518435041153039/photo/1",
@@ -6474,7 +6487,7 @@ img.image-loaded {
 
                         text:
                             "SNSリンクおよび個人プロフィール情報を更新しました。"
-                    }
+                    },
                 ],
 
                   social: [
@@ -6502,7 +6515,7 @@ img.image-loaded {
                 posts: [
                     {
                         date:
-                            "2026/09/04",
+                            "2026/08/04",
 
                         imageId:"20260804-01",
 
@@ -6514,11 +6527,168 @@ img.image-loaded {
 
                     },
 
-                                 
-          
-                ]
+                ],
+
             },
 
+            {
+
+                  type: "cosplayer",
+
+                  name: "체さん",
+
+                  category: "Cosplayer / Creator<br>各種SNSはこちらから",
+
+                  imageId:"cchheed-poto",
+
+                  tag: "#コスプレイヤー",
+
+                  description:
+                    "Cosplayer / Creator<br>各種SNSはこちらから",
+
+                  detailRows: [
+                {
+                        label:
+                            "ジャンル",
+
+                        value:
+                            "コスプレイヤー / Creator"
+                    },
+
+                    {
+                        label:
+                            "自己紹介",
+
+                        value:
+                            "主にコスプレ活動されています。",
+                    }
+                ],
+
+                  latestNews: [
+                    {
+                        date:
+                            "2026/08/25",
+
+                        title:
+                            "プロフィール情報更新",
+
+                        text:
+                            "SNSリンクおよび個人プロフィール情報を更新しました。"
+                    },
+                ],
+
+                  social: [
+                    {
+                        name:
+                            "TikTok",
+
+                        url:
+                            "https://www.tiktok.com/@cchheed?_r=1&_t=ZS-99PcmJpuG38",
+
+                        icon:
+                            "tiktok"},
+                ],
+          
+                posts: [
+                    {
+                        date:
+                            "2026/08/04",
+
+                        imageId:"20260804-01",
+
+                        title:
+                            "2026年8月4日 投稿01",
+
+                        text:
+                            "個人で頂いた写真です。",
+
+                    },
+
+
+
+                ],
+
+            },
+
+            {
+
+                  type: "cosplayer",
+
+                  name: "汐さん",
+
+                  category: "Cosplayer / Creator<br>各種SNSはこちらから",
+
+                  imageId:"xixikawaii-poto",
+
+                  tag: "#コスプレイヤー",
+
+                  description:
+                    "Cosplayer / Creator<br>各種SNSはこちらから",
+
+                  detailRows: [
+                {
+                        label:
+                            "ジャンル",
+
+                        value:
+                            "コスプレイヤー / Creator"
+                    },
+
+                    {
+                        label:
+                            "自己紹介",
+
+                        value:
+                            "主にコスプレ活動されています。",
+                    }
+                ],
+
+                  latestNews: [
+                    {
+                        date:
+                            "2026/08/25",
+
+                        title:
+                            "プロフィール情報更新",
+
+                        text:
+                            "SNSリンクおよび個人プロフィール情報を更新しました。"
+                    },
+                ],
+
+                  social: [
+                    {
+                        name:
+                            "Ｘ（旧Twitter）",
+
+                        url:
+                            "https://x.com/xixikawaii?s=11",
+
+                        icon:
+                            "ⅹ"},
+                ],
+          
+                posts: [
+                    {
+                        date:
+                            "2026/08/04",
+
+                        imageId:"20260804-01",
+
+                        title:
+                            "2026年8月4日 投稿01",
+
+                        text:
+                            "個人で頂いた写真です。",
+
+                    },
+
+                ],
+
+               
+
+  
+},
 
             ...Array.from(
                 {
@@ -9156,12 +9326,21 @@ function getViewHistory() {
 
         function historyImageMarkup(record, post) {
             const talent = talents[Number(record.talentIndex)];
-            const base = talent
-                ? getImageBase(talent.type, talent.imageId)
+            if (!talent) return "";
+
+            const postData = post || {};
+            const folder = talent.postFolder || talent.imageId || "";
+            const postBase = postData.imageId
+                ? getPostImageBase(folder, postData.imageId)
                 : "";
-            return base
-                ? `<img class="history-thumb" data-base="${escapeHTML(base)}" alt="">`
-                : "";
+            const talentBase = getImageBase(talent.type, talent.imageId);
+
+            // 履歴でも元投稿画像を優先し、存在しない場合だけプロフィール画像へ。
+            return postBase
+                ? `<img class="history-thumb" data-base="${escapeHTML(postBase)}" data-talent-base="${escapeHTML(talentBase)}" alt="">`
+                : (talentBase
+                    ? `<img class="history-thumb" data-base="${escapeHTML(talentBase)}" alt="">`
+                    : "");
         }
 
         const originalRenderActionHistory = renderActionHistory;
