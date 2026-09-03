@@ -3990,7 +3990,7 @@ img.image-loaded {
 
         const siteUpdate = {
             date: "2026/09/03",
-            title: "サイト機能をアップデートしました Ver83.5実装",
+            title: "サイト機能をアップデートしました Ver85実装",
             detail: "画像データ反映されないバグを修正、コスプレ一覧に２名追加"
         };
 
@@ -10347,14 +10347,24 @@ async function getGlobalHashtagGroupsFinal() {
             posts = [];
         }
 
+        /*
+         * getMergedPosts() が空でも、期限切れ投稿をそのまま
+         * talent.posts へ戻すとハッシュタグ一覧に復活してしまうため、
+         * フォールバック側にも必ず公開期限フィルターを適用する。
+         */
         if (!Array.isArray(posts) || posts.length === 0) {
-            posts = Array.isArray(talent.posts) ? talent.posts : [];
+            posts = Array.isArray(talent.posts)
+                ? talent.posts.filter(isPostPublished)
+                : [];
         }
 
         if (!Array.isArray(posts)) continue;
 
         for (const post of posts) {
             if (!post || typeof post !== "object") continue;
+
+            // 削除日を過ぎた投稿はハッシュタグ一覧にも一切登録しない。
+            if (!isPostPublished(post)) continue;
 
             /* 明示設定を最優先。旧hashtags/tagsにも対応 */
             const main = normalizeTag(post.mainHashtag);
